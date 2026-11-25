@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f7fb" />
+    <title>Voice Agent Studio</title>
+    <meta
+      name="description"
+      content="Real-time AI voice agents workspace."
+    />
+    <link rel="icon" type="image/png" href="/jms-favicon.png" />
+    <script>
+      if (window.location.hostname.toLowerCase() === "pondpro.naavya.ai") {
+        document.title = "PondPro Voice Agent";
+        const favicon = document.querySelector('link[rel="icon"]');
+        if (favicon) {
+          favicon.type = "image/svg+xml";
+          favicon.href = "/pondpro-favicon.svg";
+        }
+        const description = document.querySelector('meta[name="description"]');
+        if (description) description.content = "PondPro voice agent.";
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-background font-sans text-foreground antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
