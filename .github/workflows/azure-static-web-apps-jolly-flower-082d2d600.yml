@@ -32,6 +32,7 @@ jobs:
           VITE_SARVAM_PONDPRO_AGENT_ID: ${{ secrets.VITE_SARVAM_PONDPRO_AGENT_ID }}
           VITE_SARVAM_AGENTS: ${{ secrets.VITE_SARVAM_AGENTS }}
           VITE_ADMIN_PIN: ${{ secrets.VITE_ADMIN_PIN }}
+          VITE_EXPO_FEEDBACK_API_URL: ${{ secrets.VITE_EXPO_FEEDBACK_API_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PORT: ${{ secrets.PORT }}
         with:

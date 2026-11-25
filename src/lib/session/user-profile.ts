@@ -1,4 +1,10 @@
+import {
+  submitExpoFeedback,
+  type ExpoFeedbackSubmissionData,
+} from "@/lib/expo-feedback/api";
+
 export type UserProfile = {
+  sessionId?: string;
   name: string;
   phone: string;
   email: string;
@@ -7,6 +13,7 @@ export type UserProfile = {
 
 export type SessionFeedback = {
   id: string;
+  sessionId?: string;
   user: UserProfile;
   agentId: string;
   agentName: string;
@@ -28,7 +35,12 @@ export function loadUserProfile(): UserProfile | null {
     if (!parsed.name?.trim() || !parsed.phone?.trim() || !parsed.email?.trim()) {
       return null;
     }
+    const sessionId =
+      typeof parsed.sessionId === "string" && parsed.sessionId.trim()
+        ? parsed.sessionId.trim()
+        : undefined;
     return {
+      ...(sessionId ? { sessionId } : {}),
       name: parsed.name.trim(),
       phone: parsed.phone.trim(),
       email: parsed.email.trim(),
@@ -39,12 +51,16 @@ export function loadUserProfile(): UserProfile | null {
   }
 }
 
-export function saveUserProfile(profile: Omit<UserProfile, "startedAt">): UserProfile {
+export function saveUserProfile(
+  profile: Omit<UserProfile, "startedAt"> & { startedAt?: number },
+): UserProfile {
+  const sessionId = profile.sessionId?.trim() || undefined;
   const clean: UserProfile = {
+    ...(sessionId ? { sessionId } : {}),
     name: profile.name.trim(),
     phone: profile.phone.trim(),
     email: profile.email.trim(),
-    startedAt: Date.now(),
+    startedAt: profile.startedAt ?? Date.now(),
   };
   sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(clean));
   return clean;
@@ -55,12 +71,20 @@ export function clearUserProfile() {
 }
 
 export async function submitSessionFeedback(
-  input: Omit<SessionFeedback, "id" | "submittedAt">,
-): Promise<SessionFeedback> {
+  input: Omit<SessionFeedback, "id" | "submittedAt" | "sessionId">,
+): Promise<{ entry: SessionFeedback; response: ExpoFeedbackSubmissionData }> {
+  const response = await submitExpoFeedback({
+    session_id: input.user.sessionId,
+    rating: input.rating,
+    feedback_description: input.comment,
+  });
+
+  const submittedAt = Date.parse(response.feedback.submitted_at);
   const entry: SessionFeedback = {
     ...input,
-    id: crypto.randomUUID(),
-    submittedAt: Date.now(),
+    id: response.feedback.id || crypto.randomUUID(),
+    sessionId: response.session.session_id || input.user.sessionId,
+    submittedAt: Number.isFinite(submittedAt) ? submittedAt : Date.now(),
   };
 
   try {
@@ -72,15 +96,5 @@ export async function submitSessionFeedback(
     /* ignore storage quota errors */
   }
 
-  try {
-    await fetch("/api/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(entry),
-    });
-  } catch {
-    /* best-effort backend delivery */
-  }
-
-  return entry;
+  return { entry, response };
 }

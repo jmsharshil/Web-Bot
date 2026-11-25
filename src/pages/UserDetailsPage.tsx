@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Mail, Phone, User } from "lucide-react";
+import { AlertCircle, ArrowRight, Loader2, Mail, Phone, User } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/input";
+import { startExpoSession } from "@/lib/expo-feedback/api";
 import { saveUserProfile } from "@/lib/session/user-profile";
 
 type FormErrors = {
@@ -39,15 +41,45 @@ export function UserDetailsPage({ nextPath = "/studio" }: { nextPath?: string })
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+
     const nextErrors = validate(name, phone, email);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    saveUserProfile({ name, phone, email });
-    navigate(nextPath, { replace: true });
+    setSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const session = await startExpoSession({
+        user_name: name.trim(),
+        email_id: email.trim(),
+        phone_number: phone.trim(),
+      });
+
+      const parsedStartedAt = Date.parse(session.started_at);
+      saveUserProfile({
+        sessionId: session.session_id,
+        name: session.user_name || name.trim(),
+        phone: session.phone_number || phone.trim(),
+        email: session.email_id || email.trim(),
+        startedAt: Number.isFinite(parsedStartedAt) ? parsedStartedAt : Date.now(),
+      });
+      navigate(nextPath, { replace: true });
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not start your session. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
+      setSubmitting(false);
+    }
   };
 
   const field = (
@@ -113,7 +145,7 @@ export function UserDetailsPage({ nextPath = "/studio" }: { nextPath?: string })
             Enter your details
           </h2>
 
-          <form onSubmit={onSubmit} noValidate className="mt-6 flex flex-col gap-5">
+          <form onSubmit={(e) => void onSubmit(e)} noValidate className="mt-6 flex flex-col gap-5">
             {field(
               "user-name",
               "Full Name",
@@ -123,10 +155,12 @@ export function UserDetailsPage({ nextPath = "/studio" }: { nextPath?: string })
                 autoComplete: "name",
                 placeholder: "Your full name",
                 value: name,
+                disabled: submitting,
                 autoFocus: true,
                 onChange: (e) => {
                   setName(e.target.value);
                   if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+                  if (submitError) setSubmitError("");
                 },
               },
               errors.name,
@@ -140,9 +174,11 @@ export function UserDetailsPage({ nextPath = "/studio" }: { nextPath?: string })
                 autoComplete: "tel",
                 placeholder: "+91 98765 43210",
                 value: phone,
+                disabled: submitting,
                 onChange: (e) => {
                   setPhone(e.target.value);
                   if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }));
+                  if (submitError) setSubmitError("");
                 },
               },
               errors.phone,
@@ -156,17 +192,40 @@ export function UserDetailsPage({ nextPath = "/studio" }: { nextPath?: string })
                 autoComplete: "email",
                 placeholder: "you@example.com",
                 value: email,
+                disabled: submitting,
                 onChange: (e) => {
                   setEmail(e.target.value);
                   if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
+                  if (submitError) setSubmitError("");
                 },
               },
               errors.email,
             )}
 
-            <Button type="submit" size="lg" className="mt-1 h-13 w-full text-base">
-              Start the Experience
-              <ArrowRight className="size-5" />
+            {submitError ? (
+              <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs text-red-700">
+                <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
+                <span>{submitError}</span>
+              </div>
+            ) : null}
+
+            <Button
+              type="submit"
+              size="lg"
+              disabled={submitting}
+              className="mt-1 h-13 w-full text-base"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="size-5 animate-spin" />
+                  Starting Session…
+                </>
+              ) : (
+                <>
+                  Start the Experience
+                  <ArrowRight className="size-5" />
+                </>
+              )}
             </Button>
           </form>
 

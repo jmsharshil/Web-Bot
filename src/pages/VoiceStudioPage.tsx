@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import {
   AlertCircle,
   Globe,
@@ -26,7 +26,8 @@ import {
   normalizeWebAgent,
   type WebAgent,
 } from "@/lib/sarvam/agents";
-import { loadUserProfile } from "@/lib/session/user-profile";
+import { getExpoSession } from "@/lib/expo-feedback/api";
+import { clearUserProfile, loadUserProfile } from "@/lib/session/user-profile";
 
 function formatClock(sec: number) {
   const m = Math.floor(sec / 60);
@@ -44,6 +45,7 @@ export function VoiceStudioPage({
   initialAgentId,
 }: VoiceStudioPageProps = {}) {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const userProfile = useMemo(() => loadUserProfile(), []);
   const hydrated = useHydrated();
   const sarvam = useInterviewStore((s) => s.sarvam);
@@ -51,6 +53,27 @@ export function VoiceStudioPage({
   const addCustomAgent = useInterviewStore((s) => s.addCustomAgent);
 
   const [adminOpen, setAdminOpen] = useState(false);
+
+  // Verify stored session on page refresh — if already COMPLETED, reset for the next visitor
+  useEffect(() => {
+    const sessionId = userProfile?.sessionId;
+    if (!sessionId) return;
+    let active = true;
+    void getExpoSession(sessionId)
+      .then((session) => {
+        if (!active || !session) return;
+        if (session.status === "COMPLETED") {
+          clearUserProfile();
+          navigate("/", { replace: true });
+        }
+      })
+      .catch(() => {
+        /* non-blocking check: backend auto-creates session on feedback if needed */
+      });
+    return () => {
+      active = false;
+    };
+  }, [navigate, userProfile?.sessionId]);
 
   // Best-effort sync of admin-added agents from Express server (when backend is running)
   useEffect(() => {

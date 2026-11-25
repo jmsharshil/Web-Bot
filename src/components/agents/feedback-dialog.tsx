@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, Star } from "lucide-react";
+import { AlertCircle, CheckCircle2, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,17 +47,20 @@ export function FeedbackDialog({
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const activeStars = hovered || rating;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     if (rating < 1) {
       toast.error("Please select a star rating from 1 to 5.");
       return;
     }
 
     setSubmitting(true);
+    setSubmitError("");
     try {
       await submitSessionFeedback({
         user,
@@ -75,9 +78,14 @@ export function FeedbackDialog({
       window.setTimeout(() => {
         window.location.replace("/");
       }, 650);
-    } catch {
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not submit feedback. Please try again.";
       setSubmitting(false);
-      toast.error("Could not submit feedback. Please try again.");
+      setSubmitError(message);
+      toast.error(message);
     }
   };
 
@@ -138,8 +146,12 @@ export function FeedbackDialog({
                         role="radio"
                         aria-checked={rating === star}
                         aria-label={`${star} out of 5 stars`}
+                        disabled={submitting}
                         onMouseEnter={() => setHovered(star)}
-                        onClick={() => setRating(star)}
+                        onClick={() => {
+                          setRating(star);
+                          if (submitError) setSubmitError("");
+                        }}
                         className="rounded-xl p-1.5 transition-transform duration-150 hover:scale-115 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                       >
                         <Star
@@ -171,9 +183,20 @@ export function FeedbackDialog({
                   id="feedback-comment"
                   placeholder="Tell us what went well or what could be improved..."
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  disabled={submitting}
+                  onChange={(e) => {
+                    setComment(e.target.value);
+                    if (submitError) setSubmitError("");
+                  }}
                 />
               </div>
+
+              {submitError ? (
+                <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs text-red-700">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
+                  <span>{submitError}</span>
+                </div>
+              ) : null}
 
               <Button
                 type="submit"
