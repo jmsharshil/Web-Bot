@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Lock, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/card";
@@ -25,11 +26,21 @@ export function AppHeader({
       <div className="border-b border-slate-200 px-4 py-3 md:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <img
-              src="/jms-logo.png"
-              alt="JMS"
-              className="h-10 w-auto shrink-0 object-contain"
-            />
+            {lockedMode ? (
+              <img
+                src="/jms-logo.png"
+                alt="JMS"
+                className="h-10 w-auto shrink-0 object-contain"
+              />
+            ) : (
+              <Link to="/" title="Back to Onesuit">
+                <img
+                  src="/jms-logo.png"
+                  alt="JMS"
+                  className="h-10 w-auto shrink-0 object-contain"
+                />
+              </Link>
+            )}
             <div className="min-w-0 border-l border-slate-200 pl-3">
               <p className="truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base">
                 {title}

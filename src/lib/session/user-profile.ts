@@ -98,3 +98,55 @@ export async function submitSessionFeedback(
 
   return { entry, response };
 }
+
+export function loadFeedbackHistory(): SessionFeedback[] {
+  try {
+    const raw = localStorage.getItem(FEEDBACK_HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as SessionFeedback[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function csvCell(value: unknown): string {
+  const s = String(value ?? "");
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+export function downloadFeedbackCsv(entries: SessionFeedback[]) {
+  const header = [
+    "Submitted At",
+    "Name",
+    "Phone",
+    "Email",
+    "Agent",
+    "Rating (out of 5)",
+    "Comment",
+    "Messages",
+    "Duration (sec)",
+  ];
+  const rows = entries.map((item) => [
+    new Date(item.submittedAt).toLocaleString(),
+    item.user?.name ?? "",
+    item.user?.phone ?? "",
+    item.user?.email ?? "",
+    item.agentName ?? "",
+    item.rating,
+    item.comment ?? "",
+    item.turnsCount ?? 0,
+    item.durationSec ?? 0,
+  ]);
+  const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const dateTag = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `jms-expo-feedback-${dateTag}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

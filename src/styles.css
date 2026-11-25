@@ -103,6 +103,18 @@
   }
 }
 
+@keyframes wave-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
 .orb-ring {
   animation: orb-breathe 3.8s ease-in-out infinite;
 }
@@ -111,6 +123,10 @@
 }
 .orb-orbit {
   animation: orb-spin-slow 16s linear infinite;
+}
+.wave-bar {
+  transform-origin: center;
+  animation: wave-bounce 1.2s ease-in-out infinite;
 }
 
 ::-webkit-scrollbar {
@@ -130,7 +146,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .orb-ring,
-  .orb-orbit {
+  .orb-orbit,
+  .wave-bar {
     animation: none !important;
   }
 }

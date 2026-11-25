@@ -12,6 +12,7 @@ export type SarvamCallbacks = {
   onTranscript: (turn: Omit<Turn, "id" | "at">) => void;
   onState: (state: string) => void;
   onLevel: (level: number) => void;
+  onInputLevel?: (level: number) => void;
   onError: (message: string) => void;
   onEnd: () => void;
   onExtracted?: (vars: Record<string, string>) => void;
@@ -151,6 +152,11 @@ export async function connectSarvamAgent(
       ...(agentVariables ? { agent_variables: agentVariables } : {}),
     },
     audioInterface,
+    audioLevelCallback: (audioLevel) => {
+      if (audioLevel.direction === "input" && callbacks.onInputLevel) {
+        callbacks.onInputLevel(Math.min(1, Math.max(0, audioLevel.rms * 3.8)));
+      }
+    },
     transcriptCallback: async (msg) => {
       const content = (msg.content || "").trim();
       if (!content) return;

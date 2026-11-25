@@ -35,6 +35,7 @@ export type WebAgent = {
   agentVariables?: Record<string, string>;
   hostname?: string;
   favicon?: string;
+  samplePrompts?: string[];
   source: "env" | "custom";
   /** Optional per-agent credential overrides if hosted in a different Sarvam workspace */
   apiKey?: string;
@@ -122,6 +123,10 @@ export function getEnvWebAgents(): WebAgent[] {
       language: "English",
       accent: "violet",
       includeAgentVariables: false,
+      samplePrompts: [
+        "Ask about Param Social services",
+        "Try switching to Hindi or Gujarati mid-sentence",
+      ],
       source: "env",
     });
   }
@@ -138,6 +143,11 @@ export function getEnvWebAgents(): WebAgent[] {
       language: "English",
       accent: "amber",
       includeAgentVariables: false,
+      samplePrompts: [
+        "Ask about available car models & pricing",
+        "Book a test drive",
+        "Switch to Hindi or Gujarati anytime",
+      ],
       source: "env",
     });
   }
@@ -156,6 +166,10 @@ export function getEnvWebAgents(): WebAgent[] {
       includeAgentVariables: false,
       hostname: "pondpro.naavya.ai",
       favicon: "/pondpro-favicon.svg",
+      samplePrompts: [
+        "Ask about pond care & water quality",
+        "Ask for product recommendations",
+      ],
       source: "env",
     });
   }

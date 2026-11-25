@@ -23,6 +23,7 @@ export function useWebAgentSession(userProfile: UserProfile | null) {
   );
   const [error, setError] = useState("");
   const [level, setLevel] = useState(0);
+  const [inputLevel, setInputLevel] = useState(0);
   const [muted, setMuted] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [callSummary, setCallSummary] = useState<string | null>(null);
@@ -71,6 +72,7 @@ export function useWebAgentSession(userProfile: UserProfile | null) {
     handleRef.current = null;
     setIsConnected(false);
     setLevel(0);
+    setInputLevel(0);
     startedAtRef.current = null;
     if (existing) {
       try {
@@ -140,6 +142,10 @@ export function useWebAgentSession(userProfile: UserProfile | null) {
             onLevel: (nextLevel) => {
               if (seq !== connectSeqRef.current || !mountedRef.current) return;
               setLevel(nextLevel);
+            },
+            onInputLevel: (nextInput) => {
+              if (seq !== connectSeqRef.current || !mountedRef.current) return;
+              setInputLevel(mutedRef.current ? 0 : nextInput);
             },
             onError: (message) => {
               if (seq !== connectSeqRef.current || !mountedRef.current) return;
@@ -230,8 +236,12 @@ export function useWebAgentSession(userProfile: UserProfile | null) {
     const next = !mutedRef.current;
     mutedRef.current = next;
     setMuted(next);
-    if (next) handle.mute();
-    else handle.unmute();
+    if (next) {
+      setInputLevel(0);
+      handle.mute();
+    } else {
+      handle.unmute();
+    }
   }, []);
 
   const clearTranscript = useCallback(() => {
@@ -271,6 +281,7 @@ export function useWebAgentSession(userProfile: UserProfile | null) {
     hint,
     error,
     level,
+    inputLevel,
     muted,
     turns,
     callSummary,

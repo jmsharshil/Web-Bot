@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowRight, Loader2, Mail, Phone, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { AlertCircle, ArrowLeft, ArrowRight, Loader2, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -35,7 +35,13 @@ const STEPS = [
   { n: "03", title: "Start talking", copy: "Speak naturally — it talks back.", color: "bg-[#e5372a]" },
 ];
 
-export function UserDetailsPage({ nextPath = "/studio" }: { nextPath?: string }) {
+export function UserDetailsPage({
+  nextPath = "/studio",
+  backPath,
+}: {
+  nextPath?: string;
+  backPath?: string;
+}) {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -108,7 +114,18 @@ export function UserDetailsPage({ nextPath = "/studio" }: { nextPath?: string })
       <main className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-10 px-4 py-10 md:px-8 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left: Expo hero */}
         <section className="flex flex-col">
-          <img src="/jms-logo.png" alt="JMS" className="h-16 w-auto self-start object-contain" />
+          <div className="flex items-center justify-between gap-3">
+            <img src="/jms-logo.png" alt="JMS" className="h-16 w-auto object-contain" />
+            {backPath ? (
+              <Link
+                to={backPath}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-[var(--shadow-border)] hover:bg-slate-50"
+              >
+                <ArrowLeft className="size-4" />
+                All products
+              </Link>
+            ) : null}
+          </div>
 
           {/* <span className="mt-8 inline-flex items-center gap-2 self-start rounded-full bg-white px-3 py-1.5 font-mono text-[11px] font-semibold tracking-[0.18em] text-blue-700 uppercase shadow-[var(--shadow-border)]">
             <span className="size-2 animate-pulse rounded-full bg-red-500" />

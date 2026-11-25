@@ -38,11 +38,14 @@ function formatClock(sec: number) {
 type VoiceStudioPageProps = {
   lockedAgentId?: string;
   initialAgentId?: string;
+  /** Registration form path — visitors without details are sent here, and return here after feedback */
+  entryPath?: string;
 };
 
 export function VoiceStudioPage({
   lockedAgentId,
   initialAgentId,
+  entryPath = "/voiceai",
 }: VoiceStudioPageProps = {}) {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -110,6 +113,7 @@ export function VoiceStudioPage({
     hint,
     error,
     level,
+    inputLevel,
     muted,
     turns,
     elapsedSec,
@@ -152,7 +156,7 @@ export function VoiceStudioPage({
   }, [selectedAgent]);
 
   if (!userProfile) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={entryPath} replace />;
   }
 
   const handleSelectAgent = (agent: WebAgent) => {
@@ -246,6 +250,58 @@ export function VoiceStudioPage({
               <p className="mt-4 max-w-md text-center text-base font-semibold text-slate-800">
                 {hint}
               </p>
+
+              {/* Live microphone input meter during active call */}
+              {isConnected ? (
+                <div className="mt-3 inline-flex items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+                  {muted ? (
+                    <MicOff className="size-3.5 text-slate-400" />
+                  ) : (
+                    <Mic className="size-3.5 text-emerald-600" />
+                  )}
+                  <div className="flex h-3.5 items-center gap-1" aria-hidden="true">
+                    {[0.45, 0.75, 1.0, 0.75, 0.45].map((w, idx) => {
+                      const pct = muted
+                        ? 20
+                        : Math.max(22, Math.min(100, Math.round(20 + inputLevel * 85 * w)));
+                      return (
+                        <span
+                          key={idx}
+                          className={
+                            muted
+                              ? "w-1 rounded-full bg-slate-300 transition-[height] duration-75"
+                              : "w-1 rounded-full bg-emerald-500 transition-[height] duration-75"
+                          }
+                          style={{ height: `${pct}%` }}
+                        />
+                      );
+                    })}
+                  </div>
+                  <span className="font-mono text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                    {muted ? "Mic muted" : "Mic live"}
+                  </span>
+                </div>
+              ) : null}
+
+              {/* Sample starter prompts before conversation picks up */}
+              {selectedAgent && turns.length < 2 && !error ? (
+                <div className="mt-4 flex max-w-lg flex-wrap items-center justify-center gap-1.5">
+                  {(
+                    selectedAgent.samplePrompts ?? [
+                      "Say hello to start",
+                      "Switch languages naturally anytime",
+                    ]
+                  ).map((prompt) => (
+                    <span
+                      key={prompt}
+                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
+                    >
+                      “{prompt}”
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
               {error ? (
                 <div className="mt-3 flex max-w-md items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-left text-xs text-red-700">
                   <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
@@ -338,6 +394,7 @@ export function VoiceStudioPage({
         agentName={selectedAgent?.name || "Voice Agent"}
         turnsCount={turns.length}
         durationSec={elapsedSec}
+        redirectTo={entryPath}
       />
     </div>
   );

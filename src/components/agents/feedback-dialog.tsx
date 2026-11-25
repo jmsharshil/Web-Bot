@@ -32,6 +32,8 @@ type FeedbackDialogProps = {
   agentName: string;
   turnsCount: number;
   durationSec: number;
+  /** Where to send the visitor for a fresh session after submitting */
+  redirectTo?: string;
 };
 
 export function FeedbackDialog({
@@ -41,6 +43,7 @@ export function FeedbackDialog({
   agentName,
   turnsCount,
   durationSec,
+  redirectTo = "/voiceai",
 }: FeedbackDialogProps) {
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
@@ -76,7 +79,7 @@ export function FeedbackDialog({
       toast.success("Thank you for your feedback! Starting a new session…");
 
       window.setTimeout(() => {
-        window.location.replace("/");
+        window.location.replace(redirectTo);
       }, 650);
     } catch (err) {
       const message =
