@@ -10,6 +10,7 @@ import {
   QrCode,
   Search,
   Smartphone,
+  Sparkles,
 } from "lucide-react";
 import { QrDialog, type QrTarget } from "@/components/oneshut/qr-dialog";
 import { Card } from "@/components/ui/card";
@@ -212,6 +213,37 @@ export function OneShutPage() {
             Explore our websites, Microsoft Marketplace solutions and mobile apps. Open directly or
             tap the QR icon on any card to scan onto your phone.
           </p>
+        </section>
+
+        {/* Subtle Free Trial Credits Strip */}
+        <section className="flex flex-col gap-3 rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/80 via-white to-amber-50/50 px-4 py-3.5 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex items-start gap-3 sm:items-center">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-blue-100/80 text-blue-700 ring-1 ring-blue-200/70">
+              <Sparkles className="size-4.5" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-bold text-slate-900">
+                  1,000 Free Trial Credits
+                </p>
+                <span className="rounded-full bg-amber-100/80 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-800 uppercase">
+                  Free Trial
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs leading-relaxed text-slate-600 sm:text-sm">
+                Start with 1,000 complimentary credits to try our platforms — no upfront commitment.
+              </p>
+            </div>
+          </div>
+          {/* <a
+            href="https://whatsapp.naavya.ai/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-xl border border-blue-200 bg-white px-3.5 py-2 text-xs font-semibold text-blue-700 shadow-xs transition-colors hover:bg-blue-50 sm:self-center"
+          >
+            Claim trial
+            <ArrowRight className="size-3.5" />
+          </a> */}
         </section>
 
         {/* Featured: Voice AI */}
