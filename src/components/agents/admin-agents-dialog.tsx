@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import {
+  AlertCircle,
   AudioLines,
   Download,
+  Loader2,
   Lock,
   Plus,
   ShieldCheck,
@@ -20,9 +22,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input, Label, Textarea } from "@/components/ui/input";
+import { createExpoAgent, deleteExpoAgent } from "@/lib/expo-feedback/api";
 import { useInterviewStore } from "@/lib/interviews/store";
 import {
   AGENT_ACCENTS,
+  normalizeWebAgent,
   type AgentAccent,
   type WebAgent,
 } from "@/lib/sarvam/agents";
@@ -69,6 +73,8 @@ export function AdminAgentsDialog({
   const [description, setDescription] = useState("");
   const [accent, setAccent] = useState<AgentAccent>("blue");
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [agentError, setAgentError] = useState("");
   const [feedbackEntries, setFeedbackEntries] = useState<SessionFeedback[]>([]);
 
   const configuredPin = expectedAdminPin();
@@ -89,6 +95,8 @@ export function AdminAgentsDialog({
     setDescription("");
     setAccent("blue");
     setSaving(false);
+    setDeletingId(null);
+    setAgentError("");
   };
 
   const handleClose = (next: boolean) => {
@@ -98,11 +106,12 @@ export function AdminAgentsDialog({
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!configuredPin) {
-      setPinError("Admin passcode (VITE_ADMIN_PIN) is not configured in .env.");
+    const entered = pinInput.trim();
+    if (!entered) {
+      setPinError("Please enter the admin passcode.");
       return;
     }
-    if (pinInput.trim() !== configuredPin) {
+    if (configuredPin && entered !== configuredPin) {
       setPinError("Incorrect passcode. Authorized staff only.");
       return;
     }
@@ -112,6 +121,8 @@ export function AdminAgentsDialog({
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+
     const cleanName = name.trim();
     const cleanAppId = appId.trim();
 
@@ -131,59 +142,84 @@ export function AdminAgentsDialog({
       .replace(/^-+|-+$/g, "");
     const id = `${slugBase || "agent"}-${Date.now().toString(36).slice(-4)}`;
 
-    const payload: Omit<WebAgent, "source"> = {
-      id,
-      name: cleanName,
-      appId: cleanAppId,
-      description:
-        description.trim() || "Interactive AI voice agent.",
-      language: "English",
-      accent,
-      includeAgentVariables: false,
-    };
+    const cleanDesc = description.trim() || "Interactive AI voice agent.";
 
     setSaving(true);
+    setAgentError("");
     try {
-      const created = addCustomAgent(payload);
+      const saved = await createExpoAgent(
+        {
+          id,
+          name: cleanName,
+          app_id: cleanAppId,
+          description: cleanDesc,
+          language: "English",
+          accent,
+          include_agent_variables: false,
+        },
+        pinInput.trim(),
+      );
 
-      try {
-        await fetch("/api/agents", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-pin": pinInput.trim(),
-          },
-          body: JSON.stringify(created),
-        });
-      } catch {
-        /* static hosting — saved locally in this browser */
-      }
+      const normalized = normalizeWebAgent(saved, "custom");
+      const created = addCustomAgent(
+        normalized
+          ? {
+              id: normalized.id,
+              name: normalized.name,
+              appId: normalized.appId,
+              description: normalized.description,
+              language: normalized.language,
+              accent: normalized.accent,
+              includeAgentVariables: normalized.includeAgentVariables,
+            }
+          : {
+              id,
+              name: cleanName,
+              appId: cleanAppId,
+              description: cleanDesc,
+              language: "English",
+              accent,
+              includeAgentVariables: false,
+            },
+      );
 
-      toast.success(`Added "${created.name}" to the dropdown.`);
+      toast.success(`Added "${created.name}" for all visitors.`);
       setName("");
       setAppId("");
       setDescription("");
       setAccent("blue");
       onAgentAdded(created);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not save agent to the server. Please try again.";
+      setAgentError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (agent: WebAgent) => {
-    removeCustomAgent(agent.id);
-    onAgentRemoved(agent);
-
+    if (deletingId) return;
+    setDeletingId(agent.id);
+    setAgentError("");
     try {
-      await fetch(`/api/agents/${encodeURIComponent(agent.id)}`, {
-        method: "DELETE",
-        headers: { "x-admin-pin": pinInput.trim() },
-      });
-    } catch {
-      /* static hosting */
+      await deleteExpoAgent(agent.id, pinInput.trim());
+      removeCustomAgent(agent.id);
+      onAgentRemoved(agent);
+      toast.message(`Removed "${agent.name}" for all visitors.`);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not remove agent from the server. Please try again.";
+      setAgentError(message);
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
     }
-
-    toast.message(`Removed "${agent.name}".`);
   };
 
   const avgRating =
@@ -286,8 +322,8 @@ export function AdminAgentsDialog({
             {tab === "agents" ? (
               <>
                 <p className="mb-4 text-xs leading-relaxed text-slate-500">
-                  Add a new agent using just its Sarvam Agent ID. Your shared
-                  Sarvam API key, Org ID, and Workspace ID are applied
+                  Add a new agent using just its Sarvam Agent ID. Agents saved
+                  here sync through the backend and appear for all visitors
                   automatically.
                 </p>
 
@@ -299,7 +335,11 @@ export function AdminAgentsDialog({
                         id="admin-agent-name"
                         placeholder="e.g. Support Agent"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        disabled={saving}
+                        onChange={(e) => {
+                          setName(e.target.value);
+                          if (agentError) setAgentError("");
+                        }}
                         autoFocus
                       />
                     </div>
@@ -310,7 +350,11 @@ export function AdminAgentsDialog({
                         id="admin-agent-id"
                         placeholder="e.g. support-bot-1234abcd"
                         value={appId}
-                        onChange={(e) => setAppId(e.target.value)}
+                        disabled={saving}
+                        onChange={(e) => {
+                          setAppId(e.target.value);
+                          if (agentError) setAgentError("");
+                        }}
                         className="font-mono text-xs"
                       />
                     </div>
@@ -322,10 +366,21 @@ export function AdminAgentsDialog({
                       id="admin-agent-desc"
                       placeholder="Short description shown in the dropdown"
                       value={description}
-                      onChange={(e) => setDescription(e.target.value)}
+                      disabled={saving}
+                      onChange={(e) => {
+                        setDescription(e.target.value);
+                        if (agentError) setAgentError("");
+                      }}
                       className="min-h-16"
                     />
                   </div>
+
+                  {agentError ? (
+                    <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs text-red-700">
+                      <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
+                      <span>{agentError}</span>
+                    </div>
+                  ) : null}
 
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -337,6 +392,7 @@ export function AdminAgentsDialog({
                             type="button"
                             title={item.label}
                             aria-label={item.label}
+                            disabled={saving}
                             onClick={() => setAccent(item.id)}
                             className={cn(
                               "size-4.5 rounded-full transition-transform",
@@ -351,8 +407,12 @@ export function AdminAgentsDialog({
                     </div>
 
                     <Button type="submit" disabled={saving}>
-                      <Plus className="size-4" />
-                      {saving ? "Adding…" : "Add Agent"}
+                      {saving ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Plus className="size-4" />
+                      )}
+                      {saving ? "Saving…" : "Add Agent"}
                     </Button>
                   </div>
                 </form>
@@ -378,7 +438,7 @@ export function AdminAgentsDialog({
                                 tone={agent.source === "custom" ? "accent" : "muted"}
                                 className="py-0 text-[10px]"
                               >
-                                {agent.source === "custom" ? "Added" : "Env"}
+                                {agent.source === "custom" ? "Global" : "Env"}
                               </Badge>
                               {activeAgentId === agent.id ? (
                                 <Badge tone="live" className="py-0 text-[10px]">
@@ -397,10 +457,15 @@ export function AdminAgentsDialog({
                             type="button"
                             title={`Remove ${agent.name}`}
                             aria-label={`Remove ${agent.name}`}
+                            disabled={deletingId !== null}
                             onClick={() => void handleDelete(agent)}
-                            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                           >
-                            <Trash2 className="size-4" />
+                            {deletingId === agent.id ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-4" />
+                            )}
                           </button>
                         ) : null}
                       </li>

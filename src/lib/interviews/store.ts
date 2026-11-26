@@ -17,6 +17,7 @@ type Store = {
   setDraft: (patch: Partial<InterviewConfig>) => void;
   setSarvam: (creds: SarvamCredentials) => void;
   clearSarvam: () => void;
+  setCustomAgents: (agents: WebAgent[]) => void;
   addCustomAgent: (agent: Omit<WebAgent, "source">) => WebAgent;
   removeCustomAgent: (id: string) => void;
 };
@@ -45,6 +46,8 @@ export const useInterviewStore = create<Store>()(
         set((s) => ({ draft: normalizeConfig({ ...s.draft, ...patch }) })),
       setSarvam: (creds) => set({ sarvam: normalizeCredentials(creds) }),
       clearSarvam: () => set({ sarvam: EMPTY }),
+      setCustomAgents: (agents) =>
+        set({ customAgents: normalizeCustomAgents(agents) }),
       addCustomAgent: (input) => {
         const created: WebAgent = {
           ...input,

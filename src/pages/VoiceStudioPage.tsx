@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import {
   AlertCircle,
@@ -26,7 +26,7 @@ import {
   normalizeWebAgent,
   type WebAgent,
 } from "@/lib/sarvam/agents";
-import { getExpoSession } from "@/lib/expo-feedback/api";
+import { getExpoSession, listExpoAgents } from "@/lib/expo-feedback/api";
 import { clearUserProfile, loadUserProfile } from "@/lib/session/user-profile";
 
 function formatClock(sec: number) {
@@ -53,7 +53,7 @@ export function VoiceStudioPage({
   const hydrated = useHydrated();
   const sarvam = useInterviewStore((s) => s.sarvam);
   const customAgents = useInterviewStore((s) => s.customAgents);
-  const addCustomAgent = useInterviewStore((s) => s.addCustomAgent);
+  const setCustomAgents = useInterviewStore((s) => s.setCustomAgents);
 
   const [adminOpen, setAdminOpen] = useState(false);
 
@@ -67,7 +67,7 @@ export function VoiceStudioPage({
         if (!active || !session) return;
         if (session.status === "COMPLETED") {
           clearUserProfile();
-          navigate("/", { replace: true });
+          navigate(entryPath, { replace: true });
         }
       })
       .catch(() => {
@@ -76,30 +76,43 @@ export function VoiceStudioPage({
     return () => {
       active = false;
     };
-  }, [navigate, userProfile?.sessionId]);
+  }, [entryPath, navigate, userProfile?.sessionId]);
 
-  // Best-effort sync of admin-added agents from Express server (when backend is running)
+  // Sync admin-managed agents globally from Django backend (mount, tab focus, & periodic refresh)
+  const syncGlobalAgents = useCallback(async () => {
+    try {
+      const serverAgents = await listExpoAgents();
+      const normalized = serverAgents
+        .map((item) => normalizeWebAgent(item, "custom"))
+        .filter((a): a is WebAgent => Boolean(a));
+      setCustomAgents(normalized);
+    } catch {
+      /* keep last cached agents if backend is temporarily unreachable */
+    }
+  }, [setCustomAgents]);
+
   useEffect(() => {
-    let active = true;
-    void fetch("/api/agents")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { ok?: boolean; agents?: unknown[] } | null) => {
-        if (!active || !data?.ok || !Array.isArray(data.agents)) return;
-        for (const item of data.agents) {
-          const normalized = normalizeWebAgent(item, "custom");
-          if (normalized) {
-            const { source: _source, ...rest } = normalized;
-            addCustomAgent(rest);
-          }
-        }
-      })
-      .catch(() => {
-        /* static hosting without backend */
-      });
-    return () => {
-      active = false;
+    void syncGlobalAgents();
+
+    const onVisibilityOrFocus = () => {
+      if (document.visibilityState === "visible") {
+        void syncGlobalAgents();
+      }
     };
-  }, [addCustomAgent]);
+    const poll = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void syncGlobalAgents();
+      }
+    }, 30_000);
+
+    window.addEventListener("focus", onVisibilityOrFocus);
+    document.addEventListener("visibilitychange", onVisibilityOrFocus);
+    return () => {
+      window.clearInterval(poll);
+      window.removeEventListener("focus", onVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", onVisibilityOrFocus);
+    };
+  }, [syncGlobalAgents]);
 
   const agents = useMemo(
     () => getAllWebAgents(hydrated ? customAgents : [], sarvam),
@@ -383,8 +396,11 @@ export function VoiceStudioPage({
         onOpenChange={setAdminOpen}
         agents={agents}
         activeAgentId={selectedAgent?.id ?? null}
-        onAgentAdded={() => {}}
-        onAgentRemoved={handleAdminRemovedAgent}
+        onAgentAdded={() => void syncGlobalAgents()}
+        onAgentRemoved={(agent) => {
+          handleAdminRemovedAgent(agent);
+          void syncGlobalAgents();
+        }}
       />
 
       <FeedbackDialog

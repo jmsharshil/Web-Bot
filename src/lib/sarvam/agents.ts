@@ -58,7 +58,7 @@ export function normalizeWebAgent(
   if (!raw || typeof raw !== "object") return null;
   const r = raw as Record<string, unknown>;
   const name = String(r.name ?? "").trim();
-  const appId = String(r.appId ?? "").trim();
+  const appId = String(r.appId ?? r.app_id ?? "").trim();
   if (!name || !appId) return null;
 
   const rawId = String(r.id ?? name)
@@ -71,14 +71,20 @@ export function normalizeWebAgent(
   const language: LanguageId = isLanguageId(languageRaw) ? languageRaw : "English";
 
   let agentVariables: Record<string, string> | undefined;
-  if (r.agentVariables && typeof r.agentVariables === "object") {
-    const entries = Object.entries(r.agentVariables as Record<string, unknown>)
+  const rawVars = r.agentVariables ?? r.agent_variables;
+  if (rawVars && typeof rawVars === "object") {
+    const entries = Object.entries(rawVars as Record<string, unknown>)
       .map(([k, v]) => [k.trim(), String(v ?? "").trim()] as const)
       .filter(([k]) => Boolean(k));
     if (entries.length > 0) {
       agentVariables = Object.fromEntries(entries);
     }
   }
+
+  const rawPrompts = r.samplePrompts ?? r.sample_prompts;
+  const samplePrompts = Array.isArray(rawPrompts)
+    ? rawPrompts.map((p) => String(p ?? "").trim()).filter(Boolean)
+    : undefined;
 
   return {
     id: rawId || `agent-${appId.slice(0, 8).toLowerCase()}`,
@@ -87,10 +93,13 @@ export function normalizeWebAgent(
     appId,
     language,
     accent: parseAccent(r.accent, fallbackSource === "env" ? "cyan" : "violet"),
-    includeAgentVariables: Boolean(r.includeAgentVariables),
+    includeAgentVariables: Boolean(
+      r.includeAgentVariables ?? r.include_agent_variables,
+    ),
     agentVariables,
     hostname: typeof r.hostname === "string" && r.hostname.trim() ? r.hostname.trim().toLowerCase() : undefined,
     favicon: typeof r.favicon === "string" && r.favicon.trim() ? r.favicon.trim() : undefined,
+    ...(samplePrompts && samplePrompts.length > 0 ? { samplePrompts } : {}),
     source: r.source === "env" ? "env" : fallbackSource,
     apiKey: typeof r.apiKey === "string" && r.apiKey.trim() ? r.apiKey.trim() : undefined,
     orgId: typeof r.orgId === "string" && r.orgId.trim() ? r.orgId.trim() : undefined,

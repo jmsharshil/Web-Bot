@@ -87,6 +87,33 @@ export type ExpoClaimTrial = {
   updated_at: string;
 };
 
+export type ExpoVoiceAgent = {
+  id: string;
+  name: string;
+  app_id: string;
+  description: string;
+  language: string;
+  accent: string;
+  include_agent_variables: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ExpoVoiceAgentCreateRequest = {
+  id: string;
+  name: string;
+  app_id: string;
+  description?: string;
+  language?: string;
+  accent?: string;
+  include_agent_variables?: boolean;
+};
+
+export type ExpoVoiceAgentListData = {
+  count: number;
+  results: ExpoVoiceAgent[];
+};
+
 type ApiEnvelope<T> = {
   success?: boolean;
   message?: string;
@@ -149,11 +176,16 @@ function extractApiError(payload: unknown, status: number): string {
 
 async function requestExpoApi<T>(
   path: string,
-  init: { method: "GET" | "POST" | "PATCH"; body?: unknown },
+  init: {
+    method: "GET" | "POST" | "PATCH" | "DELETE";
+    body?: unknown;
+    extraHeaders?: Record<string, string>;
+  },
 ): Promise<T> {
   const url = `${getExpoFeedbackBaseUrl()}${path}`;
   const headers: Record<string, string> = {
     Accept: "application/json",
+    ...(init.extraHeaders ?? {}),
   };
   if (init.method === "POST" || init.method === "PATCH") {
     headers["Content-Type"] = "application/json";
@@ -353,4 +385,80 @@ export function submitExpoClaimTrial(
     method: "POST",
     body,
   });
+}
+
+/** Voice Agents (Public) — GET /api/expo_feedback/agents/ */
+export async function listExpoAgents(): Promise<ExpoVoiceAgent[]> {
+  const data = await requestExpoApi<ExpoVoiceAgentListData | ExpoVoiceAgent[]>(
+    "/agents/",
+    { method: "GET" },
+  );
+  if (Array.isArray(data)) return data;
+  return Array.isArray(data.results) ? data.results : [];
+}
+
+/** Voice Agents (Admin, X-Admin-Pin) — POST /api/expo_feedback/agents/ */
+export function createExpoAgent(
+  payload: ExpoVoiceAgentCreateRequest,
+  adminPin: string,
+): Promise<ExpoVoiceAgent> {
+  return requestExpoApi<ExpoVoiceAgent>("/agents/", {
+    method: "POST",
+    extraHeaders: {
+      "X-Admin-Pin": adminPin.trim(),
+    },
+    body: {
+      id: payload.id.trim(),
+      name: payload.name.trim(),
+      app_id: payload.app_id.trim(),
+      description: (payload.description ?? "Interactive AI voice agent.").trim(),
+      language: (payload.language ?? "English").trim(),
+      accent: (payload.accent ?? "blue").trim(),
+      include_agent_variables: Boolean(payload.include_agent_variables),
+    },
+  });
+}
+
+/** Voice Agents (Admin, X-Admin-Pin) — DELETE /api/expo_feedback/agents/<id>/ */
+export async function deleteExpoAgent(
+  agentId: string,
+  adminPin: string,
+): Promise<void> {
+  const trimmed = agentId.trim();
+  if (!trimmed) return;
+
+  const url = `${getExpoFeedbackBaseUrl()}/agents/${encodeURIComponent(trimmed)}/`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "X-Admin-Pin": adminPin.trim(),
+      },
+    });
+  } catch {
+    throw new Error(
+      "Unable to reach the Expo Feedback server. Please check your connection and try again.",
+    );
+  }
+
+  // Already deleted by another admin
+  if (res.status === 404 || res.status === 204) {
+    return;
+  }
+
+  const text = await res.text();
+  let parsed: ApiEnvelope<unknown> | null = null;
+  if (text) {
+    try {
+      parsed = JSON.parse(text) as ApiEnvelope<unknown>;
+    } catch {
+      parsed = null;
+    }
+  }
+
+  if (!res.ok || parsed?.success === false) {
+    throw new Error(extractApiError(parsed, res.status));
+  }
 }
