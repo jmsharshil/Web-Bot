@@ -54,6 +54,39 @@ export type ExpoFeedbackSummary = {
   rating_breakdown: Record<"1" | "2" | "3" | "4" | "5", number>;
 };
 
+export type ExpoIndustryOption = {
+  value: string;
+  label: string;
+};
+
+export type ExpoIndustriesData = {
+  placeholder: string;
+  industries: ExpoIndustryOption[];
+};
+
+export type ExpoClaimTrialRequest = {
+  user_name: string;
+  email: string;
+  phone_number: string;
+  company_name: string;
+  industry: string;
+  address: string;
+  session_id?: string | null;
+};
+
+export type ExpoClaimTrial = {
+  id: string;
+  session_id: string | null;
+  user_name: string;
+  email: string;
+  phone_number: string;
+  company_name: string;
+  industry: string;
+  address: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type ApiEnvelope<T> = {
   success?: boolean;
   message?: string;
@@ -289,5 +322,35 @@ export function listExpoSessions(params?: {
 export function getExpoFeedbackSummary(): Promise<ExpoFeedbackSummary> {
   return requestExpoApi<ExpoFeedbackSummary>("/summary/", {
     method: "GET",
+  });
+}
+
+/** Part B (3). Get Industry Dropdown Options — GET /api/expo_feedback/claim_trial/industries/ */
+export function getExpoIndustries(): Promise<ExpoIndustriesData> {
+  return requestExpoApi<ExpoIndustriesData>("/claim_trial/industries/", {
+    method: "GET",
+  });
+}
+
+/** Part B (4). Submit Claim Trial Form — POST /api/expo_feedback/claim_trial/ */
+export function submitExpoClaimTrial(
+  payload: ExpoClaimTrialRequest,
+): Promise<ExpoClaimTrial> {
+  const sessionId = payload.session_id?.trim();
+  const body: Record<string, unknown> = {
+    user_name: payload.user_name.trim(),
+    email: payload.email.trim(),
+    phone_number: payload.phone_number.trim(),
+    company_name: payload.company_name.trim(),
+    industry: payload.industry.trim(),
+    address: payload.address.trim(),
+  };
+  if (sessionId) {
+    body.session_id = sessionId;
+  }
+
+  return requestExpoApi<ExpoClaimTrial>("/claim_trial/", {
+    method: "POST",
+    body,
   });
 }

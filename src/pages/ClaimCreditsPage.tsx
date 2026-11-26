@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Briefcase,
   Building2,
   CheckCircle2,
+  Loader2,
   Mail,
   MapPin,
   Phone,
@@ -17,8 +19,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label, NativeSelect, Textarea } from "@/components/ui/input";
 import {
-  INDUSTRY_OPTIONS,
+  DEFAULT_INDUSTRY_OPTIONS,
+  DEFAULT_INDUSTRY_PLACEHOLDER,
+  fetchIndustryOptions,
   submitTrialClaim,
+  type IndustryOption,
   type TrialClaim,
 } from "@/lib/oneshut/trial-claims";
 
@@ -69,16 +74,35 @@ export function ClaimCreditsPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [industryOptions, setIndustryOptions] = useState<IndustryOption[]>(
+    DEFAULT_INDUSTRY_OPTIONS,
+  );
+  const [industryPlaceholder, setIndustryPlaceholder] = useState(
+    DEFAULT_INDUSTRY_PLACEHOLDER,
+  );
   const [industryChoice, setIndustryChoice] = useState("");
   const [customIndustry, setCustomIndustry] = useState("");
   const [address, setAddress] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+  const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submittedClaim, setSubmittedClaim] = useState<TrialClaim | null>(null);
   const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     document.title = "Claim 1,000 Free Credits · JMS Onesuit";
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void fetchIndustryOptions().then(({ placeholder, industries }) => {
+      if (!active) return;
+      setIndustryPlaceholder(placeholder);
+      setIndustryOptions(industries);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -114,6 +138,7 @@ export function ClaimCreditsPage() {
     if (Object.keys(nextErrors).length > 0) return;
 
     setSubmitting(true);
+    setSubmitError("");
     try {
       const claim = await submitTrialClaim({
         name,
@@ -125,6 +150,13 @@ export function ClaimCreditsPage() {
       });
       setSubmittedClaim(claim);
       toast.success("1,000 free trial credits requested!");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not submit your trial claim. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -239,9 +271,11 @@ export function ClaimCreditsPage() {
                       autoComplete="name"
                       placeholder="Your full name"
                       value={name}
+                      disabled={submitting}
                       onChange={(e) => {
                         setName(e.target.value);
                         if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+                        if (submitError) setSubmitError("");
                       }}
                       className="pl-10"
                       autoFocus
@@ -263,9 +297,11 @@ export function ClaimCreditsPage() {
                       autoComplete="tel"
                       placeholder="+91 98765 43210"
                       value={phone}
+                      disabled={submitting}
                       onChange={(e) => {
                         setPhone(e.target.value);
                         if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }));
+                        if (submitError) setSubmitError("");
                       }}
                       className="pl-10"
                     />
@@ -288,9 +324,11 @@ export function ClaimCreditsPage() {
                       autoComplete="email"
                       placeholder="you@company.com"
                       value={email}
+                      disabled={submitting}
                       onChange={(e) => {
                         setEmail(e.target.value);
                         if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
+                        if (submitError) setSubmitError("");
                       }}
                       className="pl-10"
                     />
@@ -311,10 +349,12 @@ export function ClaimCreditsPage() {
                       autoComplete="organization"
                       placeholder="Your company name"
                       value={companyName}
+                      disabled={submitting}
                       onChange={(e) => {
                         setCompanyName(e.target.value);
                         if (errors.companyName)
                           setErrors((p) => ({ ...p, companyName: undefined }));
+                        if (submitError) setSubmitError("");
                       }}
                       className="pl-10"
                     />
@@ -333,16 +373,18 @@ export function ClaimCreditsPage() {
                   <NativeSelect
                     id="claim-industry"
                     value={industryChoice}
+                    disabled={submitting}
                     onChange={(e) => {
                       setIndustryChoice(e.target.value);
                       if (errors.industry) setErrors((p) => ({ ...p, industry: undefined }));
+                      if (submitError) setSubmitError("");
                     }}
                     className="pl-10"
                   >
-                    <option value="">Select your industry</option>
-                    {INDUSTRY_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
+                    <option value="">{industryPlaceholder}</option>
+                    {industryOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </NativeSelect>
@@ -352,9 +394,11 @@ export function ClaimCreditsPage() {
                     type="text"
                     placeholder="Enter your industry"
                     value={customIndustry}
+                    disabled={submitting}
                     onChange={(e) => {
                       setCustomIndustry(e.target.value);
                       if (errors.industry) setErrors((p) => ({ ...p, industry: undefined }));
+                      if (submitError) setSubmitError("");
                     }}
                     className="mt-1.5"
                   />
@@ -373,9 +417,11 @@ export function ClaimCreditsPage() {
                     id="claim-address"
                     placeholder="Office / business address, city, state"
                     value={address}
+                    disabled={submitting}
                     onChange={(e) => {
                       setAddress(e.target.value);
                       if (errors.address) setErrors((p) => ({ ...p, address: undefined }));
+                      if (submitError) setSubmitError("");
                     }}
                     className="min-h-22 pl-10"
                   />
@@ -385,13 +431,29 @@ export function ClaimCreditsPage() {
                 ) : null}
               </div>
 
+              {submitError ? (
+                <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs text-red-700">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" />
+                  <span>{submitError}</span>
+                </div>
+              ) : null}
+
               <div className="mt-2 flex flex-wrap items-center justify-end gap-3">
                 <Button asChild type="button" variant="ghost">
                   <Link to="/">Cancel</Link>
                 </Button>
                 <Button type="submit" size="lg" disabled={submitting} className="min-w-48">
-                  <Sparkles className="size-4" />
-                  {submitting ? "Submitting…" : "Claim 1,000 Credits"}
+                  {submitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Submitting…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="size-4" />
+                      Claim 1,000 Credits
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
