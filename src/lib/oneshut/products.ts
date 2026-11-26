@@ -8,11 +8,18 @@ export type ProductLink = {
   kind: ProductLinkKind;
 };
 
+export type ProductOfferBadge = {
+  label: string;
+  tone: "amber" | "blue" | "emerald";
+};
+
 export type Product = {
   id: string;
   name: string;
   tagline: string;
   categories: ProductCategory[];
+  /** Optional promotional/pricing badge shown on the card */
+  offerBadge?: ProductOfferBadge;
   /** Optional logo image path in public/ */
   logo?: string;
   /** When true, logo fills the tile edge-to-edge (for full-bleed colored icons) */
@@ -42,7 +49,7 @@ export const PRODUCTS: Product[] = [
     categories: ["web"],
     logo: "/products/naavya-icon.png",
     color: "bg-blue-600",
-    links: [{ label: "Visit Website", href: "https://naavya.ai/", kind: "web" }],
+    links: [{ label: "Visit Website", href: "https://naavya.ai/book-demo", kind: "web" }],
   },
   {
     id: "naavya-whatsapp",
@@ -51,7 +58,7 @@ export const PRODUCTS: Product[] = [
     categories: ["web"],
     logo: "/products/whatsapp-naavya-icon.png",
     color: "bg-green-600",
-    links: [{ label: "Visit Website", href: "https://whatsapp.naavya.ai/", kind: "web" }],
+    links: [{ label: "Visit Website", href: "https://whatsapp.naavya.ai/signin", kind: "web" }],
   },
   {
     id: "sellsharp",
@@ -60,7 +67,7 @@ export const PRODUCTS: Product[] = [
     categories: ["web"],
     logo: "/products/sellsharp-icon.png",
     color: "bg-orange-500",
-    links: [{ label: "Visit Website", href: "https://sellsharp.co/", kind: "web" }],
+    links: [{ label: "Visit Website", href: "https://sellsharp.co/users/login/", kind: "web" }],
   },
   {
     id: "recruitos",
@@ -69,17 +76,18 @@ export const PRODUCTS: Product[] = [
     categories: ["web"],
     logo: "/products/recruitos.png",
     color: "bg-indigo-600",
-    links: [{ label: "Visit Website", href: "https://recruitos.jmstech.co/", kind: "web" }],
+    links: [{ label: "Visit Website", href: "https://recruitos.jmstech.co/login", kind: "web" }],
   },
   {
     id: "pathdarshak",
     name: "Pathdarshak AI",
     tagline: "AI-powered guidance — available on the web, iOS and Android.",
     categories: ["web", "mobile"],
+    offerBadge: { label: "1 Year Free", tone: "amber" },
     logo: "/products/pathdarshak.jpg",
     color: "bg-amber-500",
     links: [
-      { label: "Visit Website", href: "https://pathdarshakai.com/", kind: "web" },
+      { label: "Visit Website", href: "https://pathdarshakai.com/login/", kind: "web" },
       {
         label: "App Store",
         href: "https://apps.apple.com/in/app/pathdarshak-ai/id6753679762",
@@ -95,7 +103,7 @@ export const PRODUCTS: Product[] = [
     categories: ["web"],
     logo: "/products/retailtrack.png",
     color: "bg-rose-600",
-    links: [{ label: "Visit Website", href: "https://retailtrack.jmstech.co/", kind: "web" }],
+    links: [{ label: "Visit Website", href: "https://retailtrack.jmstech.co/login", kind: "web" }],
   },
 
   // ── Microsoft Marketplace ───────────────────────────────────────────
@@ -144,6 +152,7 @@ export const PRODUCTS: Product[] = [
     name: "Attendance App",
     tagline: "Mark and track attendance right from your phone.",
     categories: ["mobile"],
+    offerBadge: { label: "30 Days Free", tone: "blue" },
     logo: "/products/attendance.jpg",
     color: "bg-blue-500",
     links: [
@@ -160,6 +169,7 @@ export const PRODUCTS: Product[] = [
     name: "CardScanner",
     tagline: "Scan business cards and save contacts instantly.",
     categories: ["mobile"],
+    offerBadge: { label: "1 Year Free", tone: "amber" },
     logo: "/products/cardscanner.jpg",
     color: "bg-cyan-600",
     links: [
@@ -176,6 +186,7 @@ export const PRODUCTS: Product[] = [
     name: "Society Hub",
     tagline: "Manage your residential society in one app.",
     categories: ["mobile"],
+    offerBadge: { label: "Free", tone: "emerald" },
     logo: "/products/societyhub.png",
     logoFullBleed: true,
     color: "bg-lime-600",
@@ -189,26 +200,11 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "mydoorbell",
-    name: "MyDoorbell",
-    tagline: "Know who is at your door — right on your phone.",
-    categories: ["mobile"],
-    logo: "/products/mydoorbell.jpg",
-    color: "bg-fuchsia-600",
-    links: [
-      {
-        label: "App Store",
-        href: "https://apps.apple.com/in/app/jmsdoorbell/id6758932731",
-        kind: "appstore",
-      },
-      { label: "Google Play", href: `${PLAY}com.mydoorbell`, kind: "play" },
-    ],
-  },
-  {
     id: "vaishnavgpt",
     name: "VaishnavGPT",
     tagline: "An AI assistant app for everyday questions.",
     categories: ["mobile"],
+    offerBadge: { label: "1 Year Free", tone: "amber" },
     logo: "/products/vaishnavgpt.png",
     color: "bg-yellow-500",
     links: [{ label: "Google Play", href: `${PLAY}com.vaishnavgpt`, kind: "play" }],

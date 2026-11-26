@@ -383,7 +383,7 @@ export function OneShutPage() {
                     )}
                     <div className="min-w-0">
                       <h3 className="text-base leading-snug font-bold text-slate-900">{p.name}</h3>
-                      <div className="mt-1 flex flex-wrap gap-1">
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
                         {p.categories.map((c) => (
                           <span
                             key={c}
@@ -392,6 +392,21 @@ export function OneShutPage() {
                             {CATEGORY_LABELS[c]}
                           </span>
                         ))}
+                        {p.offerBadge ? (
+                          <span
+                            className={cn(
+                              "rounded-md px-1.5 py-0.5 text-[10px] font-bold tracking-wide uppercase",
+                              p.offerBadge.tone === "amber" &&
+                                "bg-amber-50 text-amber-800 ring-1 ring-amber-200/90",
+                              p.offerBadge.tone === "blue" &&
+                                "bg-blue-50 text-blue-700 ring-1 ring-blue-200/90",
+                              p.offerBadge.tone === "emerald" &&
+                                "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/90",
+                            )}
+                          >
+                            {p.offerBadge.label}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -457,25 +472,34 @@ export function OneShutPage() {
                           </div>
                         ) : null}
 
-                        {otherLinks.map((l) => {
-                          const { icon: Icon, className } = LINK_STYLES[l.kind];
-                          return (
-                            <a
-                              key={l.href}
-                              href={l.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={cn(
-                                "inline-flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors",
-                                className,
-                              )}
-                            >
-                              <Icon className="size-4 shrink-0" />
-                              {l.label}
-                              <ExternalLink className="size-3.5 shrink-0 opacity-70" />
-                            </a>
-                          );
-                        })}
+                        {otherLinks.length > 0 ? (
+                          <div
+                            className={cn(
+                              "grid gap-2",
+                              otherLinks.length >= 2 ? "grid-cols-2" : "grid-cols-1",
+                            )}
+                          >
+                            {otherLinks.map((l) => {
+                              const { icon: Icon, className } = LINK_STYLES[l.kind];
+                              return (
+                                <a
+                                  key={l.href}
+                                  href={l.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={cn(
+                                    "inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-2.5 py-2.5 text-xs font-semibold whitespace-nowrap transition-colors sm:text-sm",
+                                    className,
+                                  )}
+                                >
+                                  <Icon className="size-4 shrink-0" />
+                                  {l.label}
+                                  <ExternalLink className="size-3 shrink-0 opacity-70" />
+                                </a>
+                              );
+                            })}
+                          </div>
+                        ) : null}
                       </>
                     );
                   })()}
