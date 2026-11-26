@@ -24,6 +24,14 @@ export default defineConfig(({ mode }) => {
           target: expoFeedbackTarget,
           changeOrigin: true,
         },
+        "/api/ask_ai_demo": {
+          target: expoFeedbackTarget,
+          changeOrigin: true,
+        },
+        "/media": {
+          target: expoFeedbackTarget,
+          changeOrigin: true,
+        },
         "/api": {
           target: "http://127.0.0.1:8787",
           changeOrigin: true,

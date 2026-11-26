@@ -111,7 +111,7 @@ export function ClaimCreditsPage() {
       setCountdown((prev) => (prev > 1 ? prev - 1 : 0));
     }, 1000);
     const redirect = window.setTimeout(() => {
-      navigate("/", { replace: true });
+      navigate("/ask-ai", { replace: true });
     }, 3000);
     return () => {
       window.clearInterval(tick);
@@ -149,7 +149,7 @@ export function ClaimCreditsPage() {
         address,
       });
       setSubmittedClaim(claim);
-      toast.success("1,000 free trial credits requested!");
+      toast.success("Your free trial credits have been added!");
     } catch (err) {
       const message =
         err instanceof Error
@@ -206,32 +206,32 @@ export function ClaimCreditsPage() {
 
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200/80">
               <Sparkles className="size-3.5 text-amber-500" />
-              1,000 Free Trial Credits Reserved
+              1,000 Free Trial Credits Added
             </span>
 
             <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
               Thank you, {submittedClaim.name.split(" ")[0]}!
             </h1>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600 sm:text-base">
-              We&apos;ve received your trial request for{" "}
+              Your trial for{" "}
               <strong className="font-semibold text-slate-900">
                 {submittedClaim.companyName}
-              </strong>
-              . Our team will reach out shortly to activate your{" "}
-              <strong className="font-semibold text-blue-700">
-                1,000 free trial credits
               </strong>{" "}
-              — we&apos;re excited to have you onboard!
+              is ready.{" "}
+              <strong className="font-semibold text-blue-700">
+                {submittedClaim.credits.toLocaleString()} credits
+              </strong>{" "}
+              have been added to your account. Opening Ask AI for you…
             </p>
 
             <p className="mt-6 font-mono text-xs text-slate-400">
-              Returning to Onesuit in {countdown}s…
+              Opening Ask AI in {countdown}s…
             </p>
 
             <div className="mt-4">
               <Button asChild size="lg">
-                <Link to="/">
-                  Back to Onesuit Now
+                <Link to="/ask-ai">
+                  Open Ask AI Now
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>

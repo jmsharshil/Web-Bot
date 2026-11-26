@@ -85,6 +85,10 @@ export type ExpoClaimTrial = {
   address: string;
   created_at: string;
   updated_at: string;
+  /** Returned once the backend has granted the trial credits. */
+  credits?: number;
+  credits_granted?: number;
+  has_claimed_trial?: boolean;
 };
 
 export type ExpoVoiceAgent = {

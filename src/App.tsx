@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useSarvamEnvBootstrap } from "@/hooks/use-sarvam-env";
 import { getAgentByHostname, getEnvWebAgents } from "@/lib/sarvam/agents";
+import { AskAIPage } from "@/pages/AskAIPage";
 import { ClaimCreditsPage } from "@/pages/ClaimCreditsPage";
 import { OneShutPage } from "@/pages/OneShutPage";
 import { UserDetailsPage } from "@/pages/UserDetailsPage";
@@ -33,6 +34,7 @@ export function App() {
       <Route path="/onesuit" element={<OneShutPage />} />
       <Route path="/oneshut" element={<Navigate to="/" replace />} />
       <Route path="/claim-credits" element={<ClaimCreditsPage />} />
+      <Route path="/ask-ai" element={<AskAIPage />} />
 
       {/* Voice AI experience */}
       <Route element={<CredentialsBootstrap />}>
