@@ -461,6 +461,53 @@ app.delete("/api/agents/:id", (req, res) => {
   res.json({ ok: true });
 });
 
+const trialClaimsFile = path.join(__dirname, "trial-claims.json");
+
+app.post("/api/trial-claims", (req, res) => {
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const name = String(body.name || "").trim();
+  const phone = String(body.phone || "").trim();
+  const email = String(body.email || "").trim();
+  const companyName = String(body.companyName || "").trim();
+  const industry = String(body.industry || "").trim();
+  const address = String(body.address || "").trim();
+
+  if (!name || !phone || !email || !companyName || !industry || !address) {
+    return res.status(400).json({ ok: false, error: "All fields are required" });
+  }
+
+  const claim = {
+    id: String(body.id || Date.now()),
+    name,
+    phone,
+    email,
+    companyName,
+    industry,
+    address,
+    credits: 1000,
+    submittedAt: Number(body.submittedAt) || Date.now(),
+  };
+
+  try {
+    const existing = fs.existsSync(trialClaimsFile)
+      ? JSON.parse(fs.readFileSync(trialClaimsFile, "utf-8"))
+      : [];
+    const list = Array.isArray(existing) ? existing : [];
+    fs.writeFileSync(
+      trialClaimsFile,
+      JSON.stringify([claim, ...list], null, 2),
+      "utf-8",
+    );
+  } catch (err) {
+    console.error("[trial-claims] Failed to persist:", err);
+  }
+
+  console.log(
+    `[trial-claim] name=${name} phone=${phone} email=${email} company=${companyName} industry=${industry}`,
+  );
+  res.json({ ok: true, claim });
+});
+
 app.post("/api/feedback", (req, res) => {
   const { user, agentName, rating, comment, durationSec } = req.body ?? {};
   console.log(

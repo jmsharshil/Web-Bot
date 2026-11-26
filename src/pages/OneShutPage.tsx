@@ -235,15 +235,13 @@ export function OneShutPage() {
               </p>
             </div>
           </div>
-          {/* <a
-            href="https://whatsapp.naavya.ai/"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/claim-credits"
             className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-xl border border-blue-200 bg-white px-3.5 py-2 text-xs font-semibold text-blue-700 shadow-xs transition-colors hover:bg-blue-50 sm:self-center"
           >
-            Claim trial
+            Claim Credits
             <ArrowRight className="size-3.5" />
-          </a> */}
+          </Link>
         </section>
 
         {/* Featured: Voice AI */}
