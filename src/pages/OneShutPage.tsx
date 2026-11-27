@@ -147,14 +147,14 @@ export function OneShutPage() {
   }, [filter, query]);
 
   const openPageQr = () => {
-    const origin = window.location.origin;
+    const publicBaseUrl = "https://onesuite.jmstech.co";
     setQrTarget({
       title: "JMS Onesuite",
       subtitle: "Scan to open all JMS products and the live Voice AI demo on your phone.",
       logo: "/jms-favicon.png",
       links: [
-        { label: "Onesuite Hub", href: origin, kind: "web" },
-        { label: "Live Voice AI", href: `${origin}/voiceai`, kind: "web" },
+        { label: "Onesuite Hub", href: `${publicBaseUrl}/`, kind: "web" },
+        { label: "Live Voice AI", href: `${publicBaseUrl}/voiceai`, kind: "web" },
       ],
     });
   };

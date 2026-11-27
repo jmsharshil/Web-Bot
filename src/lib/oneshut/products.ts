@@ -207,6 +207,13 @@ export const PRODUCTS: Product[] = [
     offerBadge: { label: "1 Year Free", tone: "amber" },
     logo: "/products/vaishnavgpt.png",
     color: "bg-yellow-500",
-    links: [{ label: "Google Play", href: `${PLAY}com.vaishnavgpt`, kind: "play" }],
+    links: [
+      {
+        label: "App Store",
+        href: "https://apps.apple.com/in/app/vaishnavgpt/id6789450579",
+        kind: "appstore",
+      },
+      { label: "Google Play", href: `${PLAY}com.vaishnavgpt`, kind: "play" },
+    ],
   },
 ];
