@@ -4,6 +4,7 @@ import {
   type ExpoIndustryOption,
 } from "@/lib/expo-feedback/api";
 import { loadUserProfile } from "@/lib/session/user-profile";
+import { saveAskAiSession } from "@/lib/ask-ai/session";
 
 export type IndustryOption = ExpoIndustryOption;
 
@@ -113,9 +114,17 @@ export async function submitTrialClaim(
     companyName: saved.company_name || input.companyName.trim(),
     industry: saved.industry || input.industry.trim(),
     address: saved.address || input.address.trim(),
-    credits: 1000,
+    credits: typeof saved.credits === "number" ? saved.credits : 1000,
     submittedAt: Number.isFinite(parsedCreatedAt) ? parsedCreatedAt : Date.now(),
   };
+
+  // Remember who claimed, so the Ask AI page opens straight away with their credits.
+  saveAskAiSession({
+    email: claim.email,
+    name: claim.name,
+    credits: claim.credits,
+    claimedAt: claim.submittedAt,
+  });
 
   try {
     const prev = loadTrialClaims();

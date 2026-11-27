@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google Tag Manager / Analytics -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+    </script>
+    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NPQVTGNJ"></script>
     <meta name="theme-color" content="#f4f7fb" />
     <title>JMS Onesuit</title>
     <meta
@@ -44,6 +54,14 @@
     />
   </head>
   <body class="bg-background font-sans text-foreground antialiased">
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-NPQVTGNJ"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
