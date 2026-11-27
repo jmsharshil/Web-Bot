@@ -744,7 +744,7 @@ export function AskAIPage() {
                 <Plus className="size-3.5" /> <span className="hidden sm:inline">New chat</span>
               </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="rounded-xl text-xs text-slate-600">
-                <ArrowLeft className="size-3.5" /> <span className="hidden sm:inline">Onesuit</span>
+                <ArrowLeft className="size-3.5" /> <span className="hidden sm:inline">Onesuite</span>
               </Button>
             </div>
           </div>

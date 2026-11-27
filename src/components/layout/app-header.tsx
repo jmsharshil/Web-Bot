@@ -33,7 +33,7 @@ export function AppHeader({
                 className="h-10 w-auto shrink-0 object-contain"
               />
             ) : (
-              <Link to="/" title="Back to Onesuit">
+              <Link to="/" title="Back to Onesuite">
                 <img
                   src="/jms-logo.png"
                   alt="JMS"

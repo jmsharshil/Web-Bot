@@ -37,7 +37,8 @@ export function App() {
       <Routes>
         {/* Primary landing: all JMS products */}
         <Route path="/" element={<OneShutPage />} />
-        <Route path="/onesuit" element={<OneShutPage />} />
+        <Route path="/onesuite" element={<OneShutPage />} />
+        <Route path="/onesuit" element={<Navigate to="/" replace />} />
         <Route path="/oneshut" element={<Navigate to="/" replace />} />
         <Route path="/claim-credits" element={<ClaimCreditsPage />} />
         <Route path="/ask-ai" element={<AskAIPage />} />

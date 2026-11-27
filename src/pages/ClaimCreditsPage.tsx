@@ -90,7 +90,7 @@ export function ClaimCreditsPage() {
   const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
-    document.title = "Claim 1,000 Free Credits · JMS Onesuit";
+    document.title = "Claim 1,000 Free Credits · JMS Onesuite";
   }, []);
 
   useEffect(() => {
@@ -177,7 +177,7 @@ export function ClaimCreditsPage() {
               />
               <div className="border-l border-slate-200 pl-3">
                 <p className="text-sm font-bold tracking-tight text-slate-900 sm:text-base">
-                  Onesuit
+                  Onesuite
                 </p>
                 <p className="hidden font-mono text-[10px] font-medium tracking-[0.18em] text-blue-600 uppercase sm:block">
                   Free Trial Credits
@@ -190,7 +190,7 @@ export function ClaimCreditsPage() {
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:bg-slate-50 sm:text-sm"
             >
               <ArrowLeft className="size-4" />
-              Back to Onesuit
+              Back to Onesuite
             </Link>
           </div>
         </div>
@@ -462,7 +462,7 @@ export function ClaimCreditsPage() {
       </main>
 
       <footer className="px-4 pb-6 text-center font-mono text-[11px] tracking-wider text-slate-400 uppercase">
-        © JMS TechNova · Onesuit
+        © JMS TechNova · Onesuite
       </footer>
     </div>
   );

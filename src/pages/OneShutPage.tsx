@@ -128,7 +128,7 @@ export function OneShutPage() {
   const [qrTarget, setQrTarget] = useState<QrTarget | null>(null);
 
   useEffect(() => {
-    document.title = "JMS Onesuit";
+    document.title = "JMS Onesuite";
   }, []);
 
   const counts = useMemo(() => {
@@ -149,11 +149,11 @@ export function OneShutPage() {
   const openPageQr = () => {
     const origin = window.location.origin;
     setQrTarget({
-      title: "JMS Onesuit",
+      title: "JMS Onesuite",
       subtitle: "Scan to open all JMS products and the live Voice AI demo on your phone.",
       logo: "/jms-favicon.png",
       links: [
-        { label: "Onesuit Hub", href: origin, kind: "web" },
+        { label: "Onesuite Hub", href: origin, kind: "web" },
         { label: "Live Voice AI", href: `${origin}/voiceai`, kind: "web" },
       ],
     });
@@ -170,7 +170,7 @@ export function OneShutPage() {
               <img src="/jms-logo.png" alt="JMS" className="h-10 w-auto shrink-0 object-contain" />
               <div className="min-w-0 border-l border-slate-200 pl-3">
                 <p className="truncate text-sm font-bold tracking-tight text-slate-900 sm:text-base">
-                  Onesuit
+                  Onesuite
                 </p>
                 <p className="hidden font-mono text-[10px] font-medium tracking-[0.18em] text-blue-600 uppercase sm:block">
                   All JMS products · One place
@@ -181,7 +181,7 @@ export function OneShutPage() {
               <button
                 type="button"
                 onClick={openPageQr}
-                title="Scan Onesuit QR on your phone"
+                title="Scan Onesuite QR on your phone"
                 className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs transition-colors hover:border-slate-300 hover:bg-slate-50 sm:text-sm"
               >
                 <QrCode className="size-4 text-blue-600" />
@@ -547,7 +547,7 @@ export function OneShutPage() {
       </main>
 
       <footer className="px-4 pb-6 text-center font-mono text-[11px] tracking-wider text-slate-400 uppercase">
-        © JMS TechNova · Onesuit
+        © JMS TechNova · Onesuite
       </footer>
 
       <QrDialog target={qrTarget} onClose={() => setQrTarget(null)} />
