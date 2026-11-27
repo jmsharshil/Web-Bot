@@ -1,15 +1,10 @@
 import { useEffect } from "react";
 import { useInterviewStore } from "@/lib/interviews/store";
-import {
-  envSarvamCredentials,
-  isSarvamConfigured,
-  mergeCredentials,
-} from "@/lib/sarvam/env";
+import { envSarvamCredentials, mergeCredentials } from "@/lib/sarvam/env";
 
 /**
- * On boot: fill store from VITE_ env, then from /api/sarvam-config if still empty.
- * Does not overwrite credentials the user already saved in the Connect dialog
- * unless those fields are blank.
+ * On boot: fill store from VITE_ env without overwriting non-empty credentials
+ * already saved in the browser store.
  */
 export function useSarvamEnvBootstrap() {
   useEffect(() => {
@@ -24,20 +19,5 @@ export function useSarvamEnvBootstrap() {
     ) {
       useInterviewStore.getState().setSarvam(merged);
     }
-
-    if (isSarvamConfigured(merged)) return;
-
-    void fetch("/api/sarvam-config")
-      .then((r) => r.json())
-      .then((data: { configured?: boolean; credentials?: typeof fromEnv | null }) => {
-        if (!data?.configured || !data.credentials) return;
-        const now = useInterviewStore.getState().sarvam;
-        useInterviewStore
-          .getState()
-          .setSarvam(mergeCredentials(now, data.credentials));
-      })
-      .catch(() => {
-        /* offline / no server config */
-      });
   }, []);
 }
